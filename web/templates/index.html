@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Speech Emotion Recognition (SER) System using Deep Learning, MFCCs, and Mel-Spectrogram acoustic features trained on the RAVDESS dataset.">
+  <title>Speech Emotion Recognition (SER) - Deep Learning Acoustic Analysis</title>
+  
+  <!-- Modern Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <header>
+    <div class="container nav-bar">
+      <a href="/" class="brand" id="brandLink">
+        <div class="brand-icon">🎙️</div>
+        <span>Speech Emotion Recognition</span>
+      </a>
+      <div id="statusBadge" class="status-badge">
+        <span class="status-dot"></span> Checking Status...
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <main class="container">
+    <section class="hero" id="heroSection">
+      <h1>Acoustic Speech Emotion Recognition</h1>
+      <p>Analyze vocal inflections, pitch contours, and spectral energy to classify emotional states (Happy, Sad, Angry, Fearful, Calm, Disgust, Surprised, Neutral) using Deep Neural Networks.</p>
+    </section>
+
+    <!-- Interactive Dashboard Grid -->
+    <div class="dashboard-grid">
+      
+      <!-- Input Panel -->
+      <section class="card" id="inputCard">
+        <h2 class="card-title">
+          <span>🎧</span> Audio Input Source
+        </h2>
+
+        <!-- Mode Tabs -->
+        <div class="tab-header" role="tablist">
+          <button class="tab-btn active" data-tab="tabDemo" id="tabBtnDemo" role="tab">RAVDESS Samples</button>
+          <button class="tab-btn" data-tab="tabUpload" id="tabBtnUpload" role="tab">Upload File</button>
+          <button class="tab-btn" data-tab="tabRecord" id="tabBtnRecord" role="tab">Live Record</button>
+        </div>
+
+        <!-- Tab 1: Demo Samples -->
+        <div class="tab-content active" id="tabDemo" role="tabpanel">
+          <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 14px;">
+            Choose a verified sample from the RAVDESS speech dataset to run immediate emotion classification:
+          </p>
+          <div class="demo-grid" id="demoButtonsContainer">
+            <!-- Populated dynamically via JS -->
+          </div>
+        </div>
+
+        <!-- Tab 2: Upload Audio -->
+        <div class="tab-content" id="tabUpload" role="tabpanel">
+          <div class="dropzone" id="dropzone">
+            <div class="dropzone-icon">📁</div>
+            <div class="dropzone-text">Click or drag audio file here</div>
+            <div class="dropzone-hint">Supports WAV, MP3, OGG up to 20MB</div>
+            <input type="file" id="audioFileInput" accept="audio/*" style="display: none;">
+          </div>
+        </div>
+
+        <!-- Tab 3: Live Microphone Recording -->
+        <div class="tab-content" id="tabRecord" role="tabpanel">
+          <div class="recorder-box">
+            <button class="rec-btn" id="recBtn" title="Start/Stop Voice Recording" aria-label="Record voice note">
+              🎙️
+            </button>
+            <div class="timer" id="recTimer">00:00</div>
+            <p style="font-size: 0.85rem; color: var(--text-dim);" id="recHint">Click microphone to start recording voice note</p>
+          </div>
+        </div>
+
+        <!-- Audio Player & Waveform Visualizer -->
+        <div class="audio-player-container" id="audioPlayerBox" style="display: none;">
+          <div class="audio-title">
+            <span>🔊</span> <span id="currentAudioName">No audio selected</span>
+          </div>
+          <audio id="audioPlayer" controls></audio>
+          <canvas id="waveformCanvas" class="waveform-canvas"></canvas>
+        </div>
+      </section>
+
+      <!-- Output / Results Panel -->
+      <section class="card" id="resultsCard">
+        <h2 class="card-title">
+          <span>📊</span> Emotion Recognition Analysis
+        </h2>
+
+        <!-- Placeholder when no audio is analyzed yet -->
+        <div id="emptyResultsHint" style="text-align: center; padding: 48px 20px; color: var(--text-muted);">
+          <div style="font-size: 3rem; margin-bottom: 12px; opacity: 0.4;">🎵</div>
+          <h3 style="font-size: 1.15rem; color: var(--text-main); margin-bottom: 6px;">Awaiting Audio Input</h3>
+          <p style="font-size: 0.9rem; color: var(--text-dim); max-width: 360px; margin: 0 auto;">
+            Select a sample emotion from RAVDESS or upload your voice note to view live deep learning classification.
+          </p>
+        </div>
+
+        <!-- Loading Spinner -->
+        <div class="spinner-overlay" id="loadingOverlay">
+          <div class="spinner"></div>
+          <p style="font-size: 0.95rem; font-weight: 600; color: var(--text-main);">
+            Extracting MFCCs, Chroma & Mel-Spectrogram...
+          </p>
+          <p style="font-size: 0.85rem; color: var(--text-dim);">Running Neural Network Inference</p>
+        </div>
+
+        <!-- Active Results Content -->
+        <div class="results-container" id="resultsContent" style="display: none;">
+          
+          <!-- Primary Detected Emotion Highlight -->
+          <div class="primary-result-card" id="primaryResultCard">
+            <span class="badge-tag" id="badgeTag">Dominant Emotional State</span>
+            <div class="emotion-hero-title" id="emotionHeroTitle">Neutral</div>
+            <div class="confidence-hero" id="confidenceHero">Confidence: 94.2%</div>
+          </div>
+
+          <!-- All Emotion Probabilities -->
+          <div>
+            <h3 style="font-size: 1rem; color: var(--text-main); margin-bottom: 12px; font-weight: 700;">
+              Emotion Probability Breakdown
+            </h3>
+            <div class="prob-list" id="probList">
+              <!-- Populated via JS -->
+            </div>
+          </div>
+
+          <!-- Acoustic Signal Characteristics -->
+          <div>
+            <h3 style="font-size: 1rem; color: var(--text-main); margin-bottom: 12px; font-weight: 700;">
+              Acoustic Signal Characteristics
+            </h3>
+            <div class="stats-grid" id="signalStatsGrid">
+              <div class="stat-box">
+                <div class="stat-label">Duration</div>
+                <div class="stat-value" id="statDuration">-</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-label">Sample Rate</div>
+                <div class="stat-value" id="statSampleRate">-</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-label">RMS Energy</div>
+                <div class="stat-value" id="statRms">-</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-label">Zero Crossing</div>
+                <div class="stat-value" id="statZcr">-</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- JavaScript -->
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
